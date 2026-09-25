@@ -29,9 +29,10 @@ from preprocessing import (
 from blocking import generate_candidates, evaluate_blocking_recall
 from features import build_feature_matrix, get_feature_columns
 from matcher import (
-    train_model, predict_matches, load_model,
+    predict_matches, load_model,
     compute_entity_level_f05,
 )
+from train import train_randomized_model
 
 logging.basicConfig(
     level=logging.INFO,
@@ -107,6 +108,10 @@ def main():
                         help="Min shared tokens for token blocking")
     parser.add_argument("--threshold", type=float, default=None,
                         help="Override prediction threshold (default: auto from CV)")
+    parser.add_argument("--search-iterations", type=int, default=20,
+                        help="Randomized hyperparameter settings to evaluate")
+    parser.add_argument("--cv-folds", type=int, default=5,
+                        help="Grouped cross-validation folds for model search")
     args = parser.parse_args()
 
     data_dir = Path(args.data_dir)
@@ -166,7 +171,9 @@ def main():
         feature_cols = get_feature_columns(train_features)
 
         # Train model
-        model, threshold = train_model(train_features, feature_cols)
+        model, threshold = train_randomized_model(
+            train_features, n_iter=args.search_iterations, n_splits=args.cv_folds
+        )
         if args.threshold is not None:
             threshold = args.threshold
 
@@ -224,9 +231,11 @@ def main():
         feature_cols = get_feature_columns(train_features)
 
         # Train
-        model, threshold = train_model(
-            train_features, feature_cols,
-            model_path=str(model_path),
+        model, threshold = train_randomized_model(
+            train_features,
+            model_path=model_path,
+            n_iter=args.search_iterations,
+            n_splits=args.cv_folds,
         )
 
     if args.threshold is not None:

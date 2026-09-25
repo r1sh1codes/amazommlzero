@@ -53,13 +53,26 @@ python src/main.py --data-dir ../../dataset --output-dir ../../output
 python src/main.py --data-dir ../../dataset --output-dir ../../output --validate-only --val-fraction 0.2
 ```
 
+### Train with randomized hyperparameter search
+
+```bash
+python src/train.py --data-dir ../../dataset --model-path models/lgbm_model.pkl
+```
+
+`train.py` provides a standalone training command. The standard `main.py`
+pipeline also uses the same randomized LightGBM search during training.
+Cross-validation keeps all candidate pairs for each source-1 entity in the same
+fold. Tune the standard pipeline's search with `--search-iterations` and
+`--cv-folds`; the standalone script uses `--n-iter` and `--cv`. Both save a
+model artifact that `main.py --skip-train` can load.
+
 ### Skip training (use saved model)
 
 ```bash
 python src/main.py --data-dir ../../dataset --output-dir ../../output --skip-train
 ```
 
-### Override threshold
+### Override prediction threshold
 
 ```bash
 python src/main.py --data-dir ../../dataset --output-dir ../../output --threshold 0.6
